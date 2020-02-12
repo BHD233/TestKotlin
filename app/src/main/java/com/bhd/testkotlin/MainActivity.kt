@@ -1,5 +1,6 @@
 package com.bhd.testkotlin
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -20,10 +21,10 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 
+//for image
 import com.bumptech.glide.Glide
 
 import kotlinx.android.synthetic.main.activity_main.*
-import java.net.URL
 
 class MainActivity : AppCompatActivity(){
 
@@ -45,6 +46,13 @@ class MainActivity : AppCompatActivity(){
         var textView = findViewById<TextView>(R.id.textView)
 
         textView.text = editText.text
+    }
+
+    fun onGoToEmpoyeesPageClicked(view: View){
+
+        var intent = Intent(this, EmployeesInforPage::class.java)
+
+        startActivity(intent)
     }
 
     fun onPickImageButtonClicked(view: View){
