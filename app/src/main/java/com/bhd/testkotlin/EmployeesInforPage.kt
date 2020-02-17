@@ -16,8 +16,15 @@ import androidx.core.app.ComponentActivity
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import org.json.JSONObject
+import java.io.IOException
+import kotlin.collections.ArrayList
 
 
 class EmployeesInforPage  : AppCompatActivity(){
@@ -45,19 +52,20 @@ class EmployeesInforPage  : AppCompatActivity(){
 
         //set title
         val title = findViewById<TextView>(R.id.titleText)
+        
         title.text = "There are " + employees.count().toString() + " employees:"
 
-        //get name to display
-        val employeesName: MutableList<String> = arrayListOf()
+        //get name and img to display
+        val employeesGeneralInfor: MutableList<GeneralInfor> = arrayListOf()
         employees.forEach(){
             employee->
-            employeesName.add(employee.name + "\n" + employee.age.toString())
+            employeesGeneralInfor.add(employee.generalInfor)
         }
 
         //gridView for all emplyees
         val gridview = findViewById<GridView>(R.id.gridView)
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_expandable_list_item_1, employeesName)
+        val adapter = CustomAdapter(this, employeesGeneralInfor as ArrayList<GeneralInfor>)
 
         gridview.adapter = adapter
 
@@ -72,12 +80,61 @@ class EmployeesInforPage  : AppCompatActivity(){
 
     }
 
+    fun RandomImageSource() : String{
+        val preString : String = "https://api.adorable.io/avatar/"
+        val lastString : String = ".png"
+
+        var numImg = Random().nextInt() % 1000
+
+        return preString + numImg.toString() + numImg
+    }
+
+    fun RandomUserData(): ArrayList<DetailInfor>{
+        var result : ArrayList<DetailInfor> = arrayListOf()
+
+        var okhttp = OkHttpClient()
+
+        val request = okhttp3.Request.Builder().url("https://api.namefake.com/").build()
+
+        okhttp.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle this
+            }
+
+            override fun onResponse(call: Call, response: okhttp3.Response) {
+                // Handle this\
+                val jsonString = response.body().string()
+
+                val jsonObject = JSONObject(jsonString)
+
+                jsonObject.keys().forEach {
+                        it->
+                    var detail = jsonObject.getString(it)
+
+                    result.add(DetailInfor(it, detail))
+                }
+            }
+        })
+
+        //wait to get name and all thing
+        while(result.size == 0){
+
+        }
+
+        return result
+    }
+
     fun GenerateEmployee(employees: MutableList<EmployeeInfor>){
-        employees.add(EmployeeInfor("A",21,"Nam","TPHCM"))
-        employees.add(EmployeeInfor("B",23,"Nam","Dong Nai"))
-        employees.add(EmployeeInfor("C",21,"Nu","Binh Duong"))
-        employees.add(EmployeeInfor("D",29,"Nam","TPHCM"))
-        employees.add(EmployeeInfor("E",22,"Nu","TPHCM"))
+
+        for (i in (1..6)) {
+            val imgSource = RandomImageSource()
+
+            val detailInfor = RandomUserData()
+
+            //know that name came first
+            employees.add(
+                EmployeeInfor(GeneralInfor(detailInfor[0].inforDetail, imgSource), detailInfor))
+        }
     }
 
     fun onViewButtonClicked(view: View){

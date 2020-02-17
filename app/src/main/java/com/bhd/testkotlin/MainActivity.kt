@@ -20,11 +20,60 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonObjectRequest
+import com.squareup.moshi.Json
+import com.squareup.moshi.Moshi
 
 //for image
 import com.bumptech.glide.Glide
 
 import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.IOException
+import java.net.URL
+
+
+class User(var name: String){
+
+}
+
+val json = """
+{
+  "url": "https://api.github.com/repos/square/okio/issues/156",
+  "id": 91393390,
+  "number": 156,
+  "title": "ByteString.utf8CharSequence()",
+  "labels": [
+    {
+      "url": "https://api.github.com/repos/square/okio/labels/enhancement",
+      "id": 86454697,
+      "name": "enhancement",
+      "color": "84b6eb"
+    }
+  ],
+  "milestone": {
+    "url": "https://api.github.com/repos/square/okio/milestones/2",
+    "id": 992290,
+    "title": "Icebox",
+    "creator": {
+      "url": "https://api.github.com/users/swankjesse",
+      "login": "swankjesse"
+    },
+    "open_issues": 12,
+    "closed_issues": 1,
+    "created_at": "2015-02-24T00:59:14.000Z"
+  },
+  "state": "open",
+  "created_at": "2015-06-27T00:49:40.000Z",
+  "body": "Would be interesting to return a `CharSequence` that's backed by the same `ByteArray`.\n"
+}
+"""
 
 class MainActivity : AppCompatActivity(){
 
@@ -33,13 +82,24 @@ class MainActivity : AppCompatActivity(){
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+
+        var intent = Intent(this, EmployeesInforPage::class.java)
+
+        startActivity(intent)
+
+        /*
         GetColorChange()
 
         //load default img
         var imageView = findViewById<ImageView>(R.id.imageView)
 
-        Glide.with(this).load("https://cdn.mos.cms.futurecdn.net/ntFmJUZ8tw3ULD3tkBaAtf.jpg").into(imageView)
+
+        Glide.with(this).load("https://api.adorable.io/avatar/285.png")
+            .override(300, 200)
+            .into(imageView)
+        */
     }
+
 
     fun onSaveButtonClicked(view: View){
         var editText = findViewById<EditText>(R.id.editText)

@@ -10,12 +10,14 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.android.synthetic.main.content_main.*
 
 class EmployeeInforPage : AppCompatActivity(){
     var employeeInfor = EmployeeInfor()
 
     //use to add all edit text and set it to enable
-    val listValue: MutableList<EditText> = arrayListOf()
+    val listEditText: MutableList<EditText> = arrayListOf()
+    val listTextView: MutableList<TextView> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,23 +28,24 @@ class EmployeeInforPage : AppCompatActivity(){
 
         val layout = findViewById<LinearLayout>(R.id.layout)
 
-        employee.toStringToShowUp().forEach(){
+        employee.detailInfors.forEach(){
             data->
             val curLayout = LinearLayout(this)
             curLayout.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             curLayout.orientation = LinearLayout.HORIZONTAL
 
             val titleTextView = TextView(this)
-            titleTextView.text = data.first + ":"
+            titleTextView.text = data.inforTitle + ":"
 
             val valueTextView = EditText(this)
-            valueTextView.setText(data.second)
+            valueTextView.setText(data.inforDetail)
             valueTextView.isEnabled = false
 
-            listValue.add(valueTextView)
+            listEditText.add(valueTextView)
+            listTextView.add(titleTextView)
 
             curLayout.addView(titleTextView)
-            curLayout.addView(listValue[listValue.count() - 1])
+            curLayout.addView(listEditText[listEditText.count() - 1])
 
             layout.addView(curLayout)
         }
@@ -56,22 +59,23 @@ class EmployeeInforPage : AppCompatActivity(){
         }
 
         layout.addView(button)
+
     }
 
-    fun onEditButotnClicked(view: View){
+    fun onEditButotnClicked(view: View) {
         val button = view as Button
 
         if (button.text == "Edit") {
             //enable text for edit
-            listValue.forEach() { editText ->
+            listEditText.forEach() { editText ->
                 editText.isEnabled = true
             }
 
             //change text button
             button.text = "Save"
-        } else{
+        } else {
             //prevent edit then save data
-            listValue.forEach() { editText ->
+            listEditText.forEach() { editText ->
                 editText.isEnabled = false
             }
             getDataFromEditText()
@@ -81,11 +85,18 @@ class EmployeeInforPage : AppCompatActivity(){
         }
     }
 
+
     fun getDataFromEditText(){
-        employeeInfor.name = listValue[0].text.toString()
-        employeeInfor.age = listValue[1].text.toString().toInt()
-        employeeInfor.gender = listValue[2].text.toString()
-        employeeInfor.address = listValue[3].text.toString()
+        var i = 0
+        var listDetailInfor: MutableList<DetailInfor> = arrayListOf()
+        while(i < listTextView.size){
+            listDetailInfor.add(DetailInfor(listTextView[i].text.toString(), listEditText[i].text.toString()))
+            i++
+        }
+
+        employeeInfor.detailInfors = listDetailInfor as ArrayList<DetailInfor>
+
+        employeeInfor.generalInfor.name = listDetailInfor[0].inforDetail
     }
 
     fun onBackButtonClicked(view: View){

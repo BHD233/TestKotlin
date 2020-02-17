@@ -2,7 +2,9 @@ package com.bhd.testkotlin
 
 import android.os.Parcel
 import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
+/*
 class EmployeeInfor(var name: String? = "", var age: Int = 0, var gender: String? = "", var address: String? = "") :
     Parcelable {
     fun toStringToShowUp(): MutableList<Pair<String, String>>{
@@ -43,5 +45,10 @@ class EmployeeInfor(var name: String? = "", var age: Int = 0, var gender: String
             return arrayOfNulls(size)
         }
     }
+}
+*/
 
+
+@Parcelize
+class EmployeeInfor(var generalInfor: GeneralInfor = GeneralInfor(), var detailInfors: ArrayList<DetailInfor> = arrayListOf()) : Parcelable {
 }
