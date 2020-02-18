@@ -28,8 +28,11 @@ class CustomAdapter(private var c: Context, var infor: ArrayList<GeneralInfor>) 
         //reference textviews and imageviews from our layout
         val textView = view!!.findViewById<TextView>(R.id.textView)
         val imageView = view!!.findViewById<ImageView>(R.id.imageView)
+        //set rounded corner to image
+        imageView.clipToOutline = true
 
         textView.text = infor[i].name
+
         Glide.with(view!!).load(infor[i].imgSource).into(imageView)
         //handle itemclicks for the GridView
 

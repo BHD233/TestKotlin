@@ -50,11 +50,6 @@ class EmployeesInforPage  : AppCompatActivity(){
     fun ShowEmployees(employees: MutableList<EmployeeInfor>){
         val layout = findViewById<LinearLayout>(R.id.employeesLayout)
 
-        //set title
-        val title = findViewById<TextView>(R.id.titleText)
-        
-        title.text = "There are " + employees.count().toString() + " employees:"
-
         //get name and img to display
         val employeesGeneralInfor: MutableList<GeneralInfor> = arrayListOf()
         employees.forEach(){
@@ -126,7 +121,7 @@ class EmployeesInforPage  : AppCompatActivity(){
 
     fun GenerateEmployee(employees: MutableList<EmployeeInfor>){
 
-        for (i in (1..6)) {
+        for (i in (1..10)) {
             val imgSource = RandomImageSource()
 
             val detailInfor = RandomUserData()

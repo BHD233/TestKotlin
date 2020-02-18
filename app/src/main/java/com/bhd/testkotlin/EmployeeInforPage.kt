@@ -1,15 +1,17 @@
 package com.bhd.testkotlin
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.marginLeft
+import androidx.core.view.marginTop
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.content_main.*
 
 class EmployeeInforPage : AppCompatActivity(){
@@ -28,18 +30,27 @@ class EmployeeInforPage : AppCompatActivity(){
 
         val layout = findViewById<LinearLayout>(R.id.layout)
 
+        //set name to title
+        val titleText = findViewById<TextView>(R.id.title)
+        titleText.text = employee.generalInfor.name
+
+        //get all atribute and show it up
         employee.detailInfors.forEach(){
             data->
             val curLayout = LinearLayout(this)
-            curLayout.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            curLayout.orientation = LinearLayout.HORIZONTAL
+            curLayout.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            curLayout.orientation = LinearLayout.VERTICAL
 
             val titleTextView = TextView(this)
-            titleTextView.text = data.inforTitle + ":"
+            titleTextView.text = data.inforTitle!!.capitalize() + ":"
+            titleTextView.setTextColor(Color.BLACK)
+            titleTextView.setTypeface(null,Typeface.BOLD)
 
             val valueTextView = EditText(this)
             valueTextView.setText(data.inforDetail)
             valueTextView.isEnabled = false
+            valueTextView.setBackgroundResource(R.drawable.round_corner_background_text)
+            valueTextView.setPadding(40,20,40,20)
 
             listEditText.add(valueTextView)
             listTextView.add(titleTextView)
@@ -47,19 +58,12 @@ class EmployeeInforPage : AppCompatActivity(){
             curLayout.addView(titleTextView)
             curLayout.addView(listEditText[listEditText.count() - 1])
 
+            val param = curLayout.layoutParams as LinearLayout.LayoutParams
+            param.setMargins(0,20,0,20)
+            curLayout.layoutParams = param
+
             layout.addView(curLayout)
         }
-
-        //add butotn to edit infor
-        val button = Button(this)
-        button.text = "Edit"
-        button.gravity = Gravity.CENTER_HORIZONTAL
-        button.setOnClickListener{view ->
-            onEditButotnClicked(view)
-        }
-
-        layout.addView(button)
-
     }
 
     fun onEditButotnClicked(view: View) {
