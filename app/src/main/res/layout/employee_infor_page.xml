@@ -58,7 +58,7 @@
             android:background="@drawable/round_corner_background"
             android:fontFamily="sans-serif-medium"
             android:gravity="right|center"
-            android:onClick="onEditButotnClicked"
+            android:onClick="onEditButtonClicked"
             android:text="Edit"
             android:textColor="#ffffff"
             android:textSize="18dp"
@@ -84,7 +84,42 @@
             android:orientation="vertical"
             android:layout_marginRight="20dp"
             android:layout_marginLeft="20dp"
-            android:layout_marginBottom="30dp"/>
+            android:layout_marginBottom="30dp">
+
+            <ImageView
+                android:id="@+id/avatarView"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                tools:srcCompat="@tools:sample/avatars" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="369dp"
+                android:layout_height="match_parent"
+                tools:layout_editor_absoluteX="1dp">
+
+                <Button
+                    android:id="@+id/chooseFromCameraButton1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Choose From Camera"
+                    android:background="@drawable/round_corner_background"
+                    android:onClick="onChooseImageFromCameraClicked"
+                    android:visibility="invisible"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/chooseFromGalleryButton1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Choose From Gallery"
+                    android:background="@drawable/round_corner_background"
+                    android:onClick="onChooseImageFromGalleryClicked"
+                    android:visibility="invisible"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
     </ScrollView>
 
 

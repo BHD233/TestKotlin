@@ -4,6 +4,7 @@ import android.app.ActionBar
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Environment
 import android.text.Layout
 import android.view.Gravity
 import android.view.View
@@ -12,17 +13,11 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import java.util.*
-import androidx.core.app.ComponentActivity
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import com.android.volley.Request
-import com.android.volley.Response
-import com.android.volley.toolbox.JsonObjectRequest
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import org.json.JSONObject
+import java.io.File
 import java.io.IOException
 import kotlin.collections.ArrayList
 
@@ -36,15 +31,26 @@ class EmployeesInforPage  : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.employees_infor_page)
 
-        GenerateEmployee(employeeInfor)
+        //GenerateEmployee(employeeInfor)
+        readEmployee()
 
         ShowEmployees(employeeInfor)
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
-        employeeInfor[chooseEmployeePos] = (data as Intent).getParcelableExtra("data")
+        //edit
+        if(requestCode == 0){
+            employeeInfor[chooseEmployeePos] = (data as Intent).getParcelableExtra("data")
 
-        //reset display
-        ShowEmployees(employeeInfor)
+            writeToFile()
+
+            //reset display
+            ShowEmployees(employeeInfor)
+        } else if (requestCode == 2){   //create
+            employeeInfor.add((data as Intent).getParcelableExtra("data"))
+
+            //reset display
+            ShowEmployees(employeeInfor)
+        }
     }
 
     fun ShowEmployees(employees: MutableList<EmployeeInfor>){
@@ -84,8 +90,10 @@ class EmployeesInforPage  : AppCompatActivity(){
         return preString + numImg.toString() + numImg
     }
 
-    fun RandomUserData(): ArrayList<DetailInfor>{
+    fun RandomUserData(i : Int): ArrayList<DetailInfor>{
         var result : ArrayList<DetailInfor> = arrayListOf()
+        var key : ArrayList<String> = arrayListOf()
+        var value : ArrayList<String> = arrayListOf()
 
         var okhttp = OkHttpClient()
 
@@ -104,9 +112,14 @@ class EmployeesInforPage  : AppCompatActivity(){
 
                 jsonObject.keys().forEach {
                         it->
-                    var detail = jsonObject.getString(it)
+                    if (it != "latitude" && it != "longitude") {
+                        var detail = jsonObject.getString(it)
 
-                    result.add(DetailInfor(it, detail))
+                        key.add(it.toString())
+                        value.add(detail)
+
+                        result.add(DetailInfor(it, detail))
+                    }
                 }
             }
         })
@@ -115,26 +128,96 @@ class EmployeesInforPage  : AppCompatActivity(){
         while(result.size == 0){
 
         }
-
         return result
     }
 
-    fun GenerateEmployee(employees: MutableList<EmployeeInfor>){
+    fun writeToFile(){
 
-        for (i in (1..10)) {
-            val imgSource = RandomImageSource()
+        val path = Environment.getExternalStorageDirectory().toString()
 
-            val detailInfor = RandomUserData()
+        // Create a file to save the image
 
-            //know that name came first
-            employees.add(
-                EmployeeInfor(GeneralInfor(detailInfor[0].inforDetail, imgSource), detailInfor))
+        for (i in 0..employeeInfor.size - 1) {
+            val file = File(path, i.toString() + ".txt")
+
+            file.writeText("image\"" + employeeInfor[i].generalInfor.imgSource + "\"")
+
+            for (j in (0..employeeInfor[i].detailInfors.size - 1)) {
+                file.appendText(employeeInfor[i].detailInfors[j].inforTitle + "\"" + employeeInfor[i].detailInfors[j].inforDetail + "\"")
+            }
         }
     }
 
-    fun onViewButtonClicked(view: View){
-        val button = view as Button
+    fun GenerateEmployee(employees: MutableList<EmployeeInfor>) {
+        for (i in (0..10)) {
+            val imgSource = RandomImageSource()
 
-        button.text = button.id.toString()
+            val detailInfor = RandomUserData(i)
+
+            //know that name came first
+            employees.add(
+                EmployeeInfor(GeneralInfor(detailInfor[0].inforDetail, imgSource), detailInfor)
+            )
+        }
+
+        writeToFile()
+
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        // Create a file to save the image
+        val file = File(path, "numEmployees.txt")
+
+        file.writeText(employeeInfor.size.toString())
+    }
+
+    fun tokenize(text: String): List<String>{
+        val result: MutableList<String> = arrayListOf()
+        var cur: String = ""
+
+        text.forEach {
+            it->
+            if (it != '\"'){
+                cur += it
+            } else{
+                result.add(cur)
+                cur = ""
+            }
+        }
+
+        return result as List<String>
+    }
+
+    fun readEmployee(){
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        // Create a file to save the image
+        var file = File(path, "numEmployees.txt")
+
+        var numEmployees = file.readText()
+
+        //read all employees
+        for (i in 0..numEmployees.toInt() - 1){
+            file = File(path, i.toString() + ".txt")
+
+            val text = file.readText()
+
+            val token = tokenize(text)
+
+            val detailInfors: MutableList<DetailInfor> = arrayListOf()
+
+            for (j in 2..token.size - 2){
+                    detailInfors.add((DetailInfor(token[j],token[j + 1])))
+            }
+
+            val generalInfor = GeneralInfor(detailInfors[0].inforDetail, token[1])
+
+            employeeInfor.add(EmployeeInfor(generalInfor, detailInfors as ArrayList<DetailInfor>))
+        }
+    }
+
+    fun onAddButtonClicked(view: View){
+        val intent = Intent(this, CreateNewUser1::class.java)
+
+        startActivityForResult(intent,2)
     }
 }

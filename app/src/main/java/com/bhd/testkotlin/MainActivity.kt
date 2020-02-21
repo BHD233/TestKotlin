@@ -1,5 +1,6 @@
 package com.bhd.testkotlin
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,6 +9,7 @@ import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextPaint
 import com.google.android.material.snackbar.Snackbar
@@ -35,8 +37,12 @@ import okhttp3.Callback
 import okhttp3.OkHttpClient
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStream
 import java.net.URL
+import java.util.*
 
 
 class User(var name: String){
@@ -116,11 +122,65 @@ class MainActivity : AppCompatActivity(){
     }
 
     fun onPickImageButtonClicked(view: View){
-        var url = findViewById<TextView>(R.id.imageUrl)
+        //var url = findViewById<TextView>(R.id.imageUrl)
 
-        var imageView = findViewById<ImageView>(R.id.imageView)
+        //var imageView = findViewById<ImageView>(R.id.imageView)
 
-        Glide.with(this).load(url.text.toString()).into(imageView)
+        //Glide.with(this).load(url.text.toString()).into(imageView)
+
+        dispatchTakePictureIntent()
+        //val intent = Intent(Intent.ACTION_PICK)
+        //intent.type = "image/*"
+        //startActivityForResult(intent, 100)
+    }
+
+    val REQUEST_IMAGE_CAPTURE = 1
+
+    private fun dispatchTakePictureIntent() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        val imageView = findViewById<ImageView>(R.id.imageView)
+
+        if (resultCode == Activity.RESULT_OK && requestCode == 100){
+            imageView.setImageURI(data?.data) // handle chosen image
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+                val imageBitmap = data?.extras?.get("data") as Bitmap
+                val uri = saveImageToExternalStorage(imageBitmap)
+                imageView.setImageURI(uri)
+            }
+    }
+
+    private fun saveImageToExternalStorage(bitmap:Bitmap):Uri{
+        // Get the external storage directory path
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        // Create a file to save the image
+        val file = File(path, "${UUID.randomUUID()}.jpg")
+
+        try {
+            // Get the file output stream
+            val stream: OutputStream = FileOutputStream(file)
+
+            // Compress the bitmap
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+
+            // Flush the output stream
+            stream.flush()
+
+            // Close the output stream
+            stream.close()
+        } catch (e: IOException){ // Catch the exception
+            e.printStackTrace()
+        }
+
+        // Return the saved image path to uri
+        return Uri.parse(file.absolutePath)
     }
 
     fun GetColorChange(){

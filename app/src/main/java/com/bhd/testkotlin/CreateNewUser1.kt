@@ -21,57 +21,47 @@ import java.io.OutputStream
 import java.util.*
 
 
-class EmployeeInforPage : AppCompatActivity(){
-    var employeeInfor = EmployeeInfor()
+class CreateNewUser1: AppCompatActivity(){
 
-    //use to add all edit text and set it to enable
-    val listEditText: MutableList<EditText> = arrayListOf()
-    val listTextView: MutableList<TextView> = arrayListOf()
+    var employeeInfor = EmployeeInfor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.employee_infor_page)
-
-        val employee = intent.getParcelableExtra<EmployeeInfor>("data")
-        employeeInfor = employee
+        setContentView(R.layout.create_new_user_page1)
 
         getInterface()
     }
 
     fun getInterface(){
-        val layout = findViewById<LinearLayout>(R.id.layout)
-
-        //set name to title
-        val titleText = findViewById<TextView>(R.id.title)
-        titleText.text = employeeInfor.generalInfor.name
+        val layout = findViewById<LinearLayout>(R.id.mainLayout)
 
         //display image and add 2 change button
-        val imageView = findViewById<ImageView>(R.id.avatarView)
-        Glide.with(this).load(employeeInfor.generalInfor.imgSource).into(imageView)
+        val imageView = findViewById<ImageView>(R.id.createAvatarImage)
+        Glide.with(this).load("https://discovery-park.co.uk/wp-content/uploads/2017/06/avatar-default.png").into(imageView)
+
+        val chooseFromCameraButton = findViewById<Button>(R.id.chooseFromCameraButton1)
+        chooseFromCameraButton.isVisible = true
+
+        val chooseFromGallaryButton = findViewById<Button>(R.id.chooseFromGalleryButton1)
+        chooseFromGallaryButton.isVisible = true
 
         //get all atribute and show it up
-        employeeInfor.detailInfors.forEach(){
-                data->
+        for(i in (0..AllAtributeOfDetailInfor.size / 3)){
             val curLayout = LinearLayout(this)
             curLayout.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             curLayout.orientation = LinearLayout.VERTICAL
 
             val titleTextView = TextView(this)
-            titleTextView.text = data.inforTitle!!.capitalize() + ":"
+            titleTextView.text = AllAtributeOfDetailInfor[i].capitalize() + ":"
             titleTextView.setTextColor(Color.BLACK)
-            titleTextView.setTypeface(null,Typeface.BOLD)
+            titleTextView.setTypeface(null, Typeface.BOLD)
 
             val valueTextView = EditText(this)
-            valueTextView.setText(data.inforDetail)
-            valueTextView.isEnabled = false
             valueTextView.setBackgroundResource(R.drawable.round_corner_background_text)
             valueTextView.setPadding(40,20,40,20)
 
-            listEditText.add(valueTextView)
-            listTextView.add(titleTextView)
-
             curLayout.addView(titleTextView)
-            curLayout.addView(listEditText[listEditText.count() - 1])
+            curLayout.addView(valueTextView)
 
             val param = curLayout.layoutParams as LinearLayout.LayoutParams
             param.setMargins(0,20,0,20)
@@ -79,40 +69,22 @@ class EmployeeInforPage : AppCompatActivity(){
 
             layout.addView(curLayout)
         }
+
+        //show next button
+        val button = Button(this)
+        button.setBackgroundResource(R.drawable.round_corner_background)
+        button.text = "Next"
+        button.setOnClickListener(View.OnClickListener {
+            onNextButtonClicked(it)
+        })
+
+        layout.addView(button)
     }
 
-    fun onEditButtonClicked(view: View) {
-        val chooseFromGallery = findViewById<Button>(R.id.chooseFromGalleryButton1)
-        val chooseFromCamera = findViewById<Button>(R.id.chooseFromCameraButton1)
+    fun onNextButtonClicked(view: View){
+        val intent = Intent(this, CreateNewUser2::class.java)
 
-        val button = view as Button
-
-        if (button.text == "Edit") {
-            //enable text for edit
-            listEditText.forEach() { editText ->
-                editText.isEnabled = true
-            }
-
-            //make 2 button visible
-            chooseFromCamera.isVisible = true
-            chooseFromGallery.isVisible = true
-
-            //change text button
-            button.text = "Save"
-        } else {
-            //prevent edit then save data
-            listEditText.forEach() { editText ->
-                editText.isEnabled = false
-            }
-            getDataFromEditText()
-
-            //make 2 button invisible
-            chooseFromCamera.isVisible = false
-            chooseFromGallery.isVisible = false
-
-            //change text button
-            button.text = "Edit"
-        }
+        startActivityForResult(intent, 0)
     }
 
     fun onChooseImageFromGalleryClicked(view: View){
@@ -130,23 +102,20 @@ class EmployeeInforPage : AppCompatActivity(){
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        val imageView = findViewById<ImageView>(R.id.avatarView)
+        val imageView = findViewById<ImageView>(R.id.createAvatarImage)
 
         if (resultCode == Activity.RESULT_OK && requestCode == 100){
             val uri = data?.data
-            imageView.setImageURI(uri) // handle chosen image
-
+            imageView.setImageURI(uri)
             val path = getPath(uri)
-
-            employeeInfor.generalInfor.imgSource = path
-
         } else if (requestCode == 1 && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
             val uri = saveImageToExternalStorage(imageBitmap)
             imageView.setImageURI(uri)
-
-            //save to image
-            employeeInfor.generalInfor.imgSource = uri.toString()
+        } else if (requestCode == 0){
+            val result: EmployeeInfor = (data as Intent).getParcelableExtra("data")
+            setResult(RESULT_OK, intent.putExtra("data", result))
+            finish()
         }
     }
 
@@ -189,24 +158,4 @@ class EmployeeInforPage : AppCompatActivity(){
         // Return the saved image path to uri
         return Uri.parse(file.absolutePath)
     }
-
-    fun getDataFromEditText(){
-        var i = 0
-        var listDetailInfor: MutableList<DetailInfor> = arrayListOf()
-        while(i < listTextView.size){
-            listDetailInfor.add(DetailInfor(listTextView[i].text.toString(), listEditText[i].text.toString()))
-            i++
-        }
-
-        employeeInfor.detailInfors = listDetailInfor as ArrayList<DetailInfor>
-
-        employeeInfor.generalInfor.name = listDetailInfor[0].inforDetail
-    }
-
-    fun onBackButtonClicked(view: View){
-        setResult(RESULT_OK, intent.putExtra("data", employeeInfor))
-        finish()
-    }
-
-
 }

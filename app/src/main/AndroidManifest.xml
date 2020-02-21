@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -29,6 +32,12 @@
                   android:label="@string/app_name"/>
         <activity android:name=".EmployeeInforPage"
                   android:label="@string/app_name"/>
+        <activity android:name=".CreateNewUser1"
+                  android:label="TestKotlin"/>
+        <activity android:name=".CreateNewUser2"
+            android:label="TestKotlin"/>
+        <activity android:name=".CreateNewUser3"
+            android:label="TestKotlin"/>
     </application>
 
 </manifest>
