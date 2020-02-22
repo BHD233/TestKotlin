@@ -31,10 +31,21 @@ class EmployeesInforPage  : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.employees_infor_page)
 
-        //GenerateEmployee(employeeInfor)
-        readEmployee()
+        //get intent
+        val where = intent.getIntExtra("Where", 0)
 
-        ShowEmployees(employeeInfor)
+        if (where == 0) {
+            //GenerateEmployee(employeeInfor)
+            readEmployee()
+
+            ShowEmployees(employeeInfor)
+        } else {
+            readEmployee()
+            //GenerateEmployee(employeeInfor)
+            val intent = Intent(this, CreateNewUser1::class.java)
+            intent.putExtra("Where", where)
+            startActivityForResult(intent,2)
+        }
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
         //edit
@@ -48,8 +59,22 @@ class EmployeesInforPage  : AppCompatActivity(){
         } else if (requestCode == 2){   //create
             employeeInfor.add((data as Intent).getParcelableExtra("data"))
 
+            writeToFile()
+
             //reset display
             ShowEmployees(employeeInfor)
+
+            //clear temp file
+            val path = Environment.getExternalStorageDirectory().toString()
+
+            var file = File(path, "temp1.txt")
+            file.writeText("")
+
+            file = File(path, "temp2.txt")
+            file.writeText("")
+
+            file = File(path, "temp3.txt")
+            file.writeText("")
         }
     }
 
@@ -146,6 +171,9 @@ class EmployeesInforPage  : AppCompatActivity(){
                 file.appendText(employeeInfor[i].detailInfors[j].inforTitle + "\"" + employeeInfor[i].detailInfors[j].inforDetail + "\"")
             }
         }
+        val file = File(path, "numEmployees.txt")
+
+        file.writeText(employeeInfor.size.toString())
     }
 
     fun GenerateEmployee(employees: MutableList<EmployeeInfor>) {
@@ -164,7 +192,6 @@ class EmployeesInforPage  : AppCompatActivity(){
 
         val path = Environment.getExternalStorageDirectory().toString()
 
-        // Create a file to save the image
         val file = File(path, "numEmployees.txt")
 
         file.writeText(employeeInfor.size.toString())

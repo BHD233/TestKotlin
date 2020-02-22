@@ -8,7 +8,9 @@ import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.PersistableBundle
 import android.provider.MediaStore
+import android.text.Editable
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -24,12 +26,34 @@ import java.util.*
 class CreateNewUser1: AppCompatActivity(){
 
     var employeeInfor = EmployeeInfor()
+    val listValue: MutableList<EditText> = arrayListOf()
+    val listTitle: MutableList<String> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.create_new_user_page1)
 
-        getInterface()
+        val where = intent.getIntExtra("Where", 0)
+
+        if (where == 0) { //not have temp file
+            getInterface()
+        } else if (where == 1){ //have temp file
+            readEmployee()
+            getInterface()
+
+            //get all text back
+            for (i in 0..employeeInfor.detailInfors.size - 1){
+                listValue[i].setText(employeeInfor.detailInfors[i].inforDetail)
+            }
+        } else {
+            readEmployee()
+
+            val intent = Intent(this, CreateNewUser2::class.java)
+
+            intent.putExtra("Where", where)
+
+            startActivityForResult(intent,0)
+        }
     }
 
     fun getInterface(){
@@ -37,7 +61,13 @@ class CreateNewUser1: AppCompatActivity(){
 
         //display image and add 2 change button
         val imageView = findViewById<ImageView>(R.id.createAvatarImage)
-        Glide.with(this).load("https://discovery-park.co.uk/wp-content/uploads/2017/06/avatar-default.png").into(imageView)
+
+        //if not have image yet
+        if (employeeInfor.generalInfor.imgSource == ""){
+            Glide.with(this).load("https://discovery-park.co.uk/wp-content/uploads/2017/06/avatar-default.png").into(imageView)
+        } else{
+            Glide.with(this).load(employeeInfor.generalInfor.imgSource).into(imageView)
+        }
 
         val chooseFromCameraButton = findViewById<Button>(R.id.chooseFromCameraButton1)
         chooseFromCameraButton.isVisible = true
@@ -60,6 +90,9 @@ class CreateNewUser1: AppCompatActivity(){
             valueTextView.setBackgroundResource(R.drawable.round_corner_background_text)
             valueTextView.setPadding(40,20,40,20)
 
+            listTitle.add(titleTextView.text.toString())
+            listValue.add(valueTextView)
+
             curLayout.addView(titleTextView)
             curLayout.addView(valueTextView)
 
@@ -81,10 +114,20 @@ class CreateNewUser1: AppCompatActivity(){
         layout.addView(button)
     }
 
-    fun onNextButtonClicked(view: View){
-        val intent = Intent(this, CreateNewUser2::class.java)
+    fun onNextButtonClicked(view: View) {
+        var pass = true
 
-        startActivityForResult(intent, 0)
+        listValue.forEach() { it ->
+            if (it.text.toString() == "") {
+                pass = false
+            }
+        }
+
+        if (pass) {
+            val intent = Intent(this, CreateNewUser2::class.java)
+
+            startActivityForResult(intent, 0)
+        }
     }
 
     fun onChooseImageFromGalleryClicked(view: View){
@@ -94,11 +137,98 @@ class CreateNewUser1: AppCompatActivity(){
     }
 
     fun onChooseImageFromCameraClicked(view: View){
-        val i = Intent(
-            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        )
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                startActivityForResult(takePictureIntent, 1)
+            }
+        }
+    }
 
-        startActivityForResult(i, 100)
+    override fun onSaveInstanceState(outState: Bundle) {
+        // get data to save all to file
+        getData()
+
+        //if cannot get data => another activities
+        if (employeeInfor.detailInfors.size == 0){
+            readEmployee()
+        }
+
+        //save all to file
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        // Create a file to save the image
+
+        val file = File(path, "temp1.txt")
+
+        file.writeText("image\"" + employeeInfor.generalInfor.imgSource + "\"")
+
+        for (j in (0..employeeInfor.detailInfors.size - 1)) {
+            file.appendText(employeeInfor.detailInfors[j].inforTitle + "\"" + employeeInfor.detailInfors[j].inforDetail + "\"")
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
+    fun tokenize(text: String): List<String>{
+        val result: MutableList<String> = arrayListOf()
+        var cur: String = ""
+
+        text.forEach {
+                it->
+            if (it != '\"'){
+                cur += it
+            } else{
+                result.add(cur)
+                cur = ""
+            }
+        }
+
+        return result as List<String>
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        readEmployee()
+
+        val imageView = findViewById<ImageView>(R.id.createAvatarImage)
+
+        if (employeeInfor.generalInfor.imgSource != "") {
+            Glide.with(this).load(employeeInfor.generalInfor.imgSource).into(imageView)
+        }
+
+        for (i in 0..employeeInfor.detailInfors.size - 1){
+            listValue[i].setText(employeeInfor.detailInfors[i].inforDetail)
+        }
+    }
+
+    fun readEmployee() {
+        //clear current employee
+        employeeInfor.detailInfors.clear()
+
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        val file = File(path, "temp1.txt")
+
+        val text = file.readText()
+
+        val token = tokenize(text)
+
+        val detailInfors: MutableList<DetailInfor> = arrayListOf()
+
+        for (j in 2..token.size - 2 step 2) {
+            detailInfors.add((DetailInfor(token[j], token[j + 1])))
+        }
+
+        //get name
+        var generalInfor = GeneralInfor()
+        if (detailInfors.size > 0) {
+            generalInfor = GeneralInfor(detailInfors[0].inforDetail, token[1])
+        }
+        //get img
+        if (token.size > 0 && token[1] != ""){
+            generalInfor.imgSource = token[1]
+        }
+
+        employeeInfor = EmployeeInfor(generalInfor, detailInfors as ArrayList<DetailInfor>)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -108,13 +238,36 @@ class CreateNewUser1: AppCompatActivity(){
             val uri = data?.data
             imageView.setImageURI(uri)
             val path = getPath(uri)
+
+            //save to employee
+            employeeInfor.generalInfor.imgSource = path
         } else if (requestCode == 1 && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
             val uri = saveImageToExternalStorage(imageBitmap)
+
             imageView.setImageURI(uri)
+
+            employeeInfor.generalInfor.imgSource = uri.toString()
         } else if (requestCode == 0){
             val result: EmployeeInfor = (data as Intent).getParcelableExtra("data")
-            setResult(RESULT_OK, intent.putExtra("data", result))
+
+            getData()
+
+            //if cannot get data => another activities
+            if (employeeInfor.detailInfors.size == 0){
+                readEmployee()
+            }
+
+            //merge data
+            result.detailInfors.forEach(){
+                    it->
+                employeeInfor.detailInfors.add(it)
+            }
+
+            //get name to general infor
+            employeeInfor.generalInfor.name = employeeInfor.detailInfors[0].inforDetail
+
+            setResult(RESULT_OK, intent.putExtra("data", employeeInfor))
             finish()
         }
     }
@@ -157,5 +310,16 @@ class CreateNewUser1: AppCompatActivity(){
 
         // Return the saved image path to uri
         return Uri.parse(file.absolutePath)
+    }
+
+    fun getData(){
+        //reset employee
+        employeeInfor.detailInfors.clear()
+
+        for (i in 0..listTitle.size - 1){
+            if (listValue[i].text.toString() != ""){
+                employeeInfor.detailInfors.add(DetailInfor(listTitle[i], listValue[i].text.toString()))
+            }
+        }
     }
 }

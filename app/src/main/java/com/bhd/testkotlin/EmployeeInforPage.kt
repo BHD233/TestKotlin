@@ -122,17 +122,18 @@ class EmployeeInforPage : AppCompatActivity(){
     }
 
     fun onChooseImageFromCameraClicked(view: View){
-        val i = Intent(
-            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        )
-
-        startActivityForResult(i, 100)
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
+            takePictureIntent.resolveActivity(packageManager)?.also {
+                startActivityForResult(takePictureIntent, 1)
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val imageView = findViewById<ImageView>(R.id.avatarView)
 
         if (resultCode == Activity.RESULT_OK && requestCode == 100){
+            //gallery
             val uri = data?.data
             imageView.setImageURI(uri) // handle chosen image
 
@@ -141,6 +142,7 @@ class EmployeeInforPage : AppCompatActivity(){
             employeeInfor.generalInfor.imgSource = path
 
         } else if (requestCode == 1 && resultCode == RESULT_OK) {
+            //camera
             val imageBitmap = data?.extras?.get("data") as Bitmap
             val uri = saveImageToExternalStorage(imageBitmap)
             imageView.setImageURI(uri)

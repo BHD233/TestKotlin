@@ -24,12 +24,34 @@ import java.util.*
 class CreateNewUser2: AppCompatActivity(){
 
     var employeeInfor = EmployeeInfor()
+    val listValue: MutableList<EditText> = arrayListOf()
+    val listTitle: MutableList<String> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.create_new_user_page1)
 
-        getInterface()
+        val where = intent.getIntExtra("Where", 0)
+
+        if (where == 0) {
+            getInterface()
+        } else if (where == 2){
+            readEmployee()
+            getInterface()
+
+            //get all text back
+            for (i in 0..employeeInfor.detailInfors.size - 1){
+                listValue[i].setText(employeeInfor.detailInfors[i].inforDetail)
+            }
+        } else {
+            readEmployee()
+
+            val intent = Intent(this, CreateNewUser3::class.java)
+
+            intent.putExtra("Where", where)
+
+            startActivityForResult(intent,0)
+        }
 
         //reset title
         val title = findViewById<TextView>(R.id.title)
@@ -58,6 +80,9 @@ class CreateNewUser2: AppCompatActivity(){
             valueTextView.setBackgroundResource(R.drawable.round_corner_background_text)
             valueTextView.setPadding(40,20,40,20)
 
+            listTitle.add(titleTextView.text.toString())
+            listValue.add(valueTextView)
+
             curLayout.addView(titleTextView)
             curLayout.addView(valueTextView)
 
@@ -82,14 +107,123 @@ class CreateNewUser2: AppCompatActivity(){
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == 0){
             val result: EmployeeInfor = (data as Intent).getParcelableExtra("data")
-            setResult(RESULT_OK, intent.putExtra("data", result))
+
+            getData()
+
+            //if cannot get data => another activities
+            if (employeeInfor.detailInfors.size == 0){
+                readEmployee()
+            }
+
+            //merge data
+            result.detailInfors.forEach(){
+                it->
+                employeeInfor.detailInfors.add(it)
+            }
+
+            setResult(RESULT_OK, intent.putExtra("data", employeeInfor))
             finish()
         }
     }
 
-    fun onNextButtonClicked(view: View){
-        val intent = Intent(this, CreateNewUser3::class.java)
+    fun onNextButtonClicked(view: View) {
+        var pass = true
 
-        startActivityForResult(intent, 0)
+        listValue.forEach() { it ->
+            if (it.text.toString() == "") {
+                pass = false
+            }
+        }
+
+        if (pass) {
+            val intent = Intent(this, CreateNewUser3::class.java)
+
+            startActivityForResult(intent, 0)
+        }
+    }
+
+    fun getData(){
+        //reset employee
+        employeeInfor = EmployeeInfor()
+
+        for (i in 0..listTitle.size - 1){
+            if (listValue[i].text.toString() != ""){
+                employeeInfor.detailInfors.add(DetailInfor(listTitle[i], listValue[i].text.toString()))
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+
+        // get data to save all to file
+        getData()
+
+        //if cannot get data => another activities
+        if (employeeInfor.detailInfors.size == 0){
+            readEmployee()
+        }
+
+        //save all to file
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        // Create a file to save the image
+
+        val file = File(path, "temp2.txt")
+
+        file.writeText("")
+
+        for (j in (0..employeeInfor.detailInfors.size - 1)) {
+            file.appendText(employeeInfor.detailInfors[j].inforTitle + "\"" + employeeInfor.detailInfors[j].inforDetail + "\"")
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
+    fun tokenize(text: String): List<String>{
+        val result: MutableList<String> = arrayListOf()
+        var cur: String = ""
+
+        text.forEach {
+                it->
+            if (it != '\"'){
+                cur += it
+            } else{
+                result.add(cur)
+                cur = ""
+            }
+        }
+
+        return result as List<String>
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        readEmployee()
+
+        for (i in 0..employeeInfor.detailInfors.size - 1){
+            listValue[i].setText(employeeInfor.detailInfors[i].inforDetail)
+        }
+    }
+
+    fun readEmployee() {
+        //clear current employee
+        employeeInfor = EmployeeInfor()
+
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        val file = File(path, "temp2.txt")
+
+        val text = file.readText()
+
+        val token = tokenize(text)
+
+        val detailInfors: MutableList<DetailInfor> = arrayListOf()
+
+        for (j in 0..token.size - 2 step 2) {
+            detailInfors.add((DetailInfor(token[j], token[j + 1])))
+        }
+
+        val generalInfor = GeneralInfor()
+
+        employeeInfor = EmployeeInfor(generalInfor, detailInfors as ArrayList<DetailInfor>)
     }
 }

@@ -88,8 +88,32 @@ class MainActivity : AppCompatActivity(){
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
-
+        //choose activity to know where to start
         var intent = Intent(this, EmployeesInforPage::class.java)
+
+        val path = Environment.getExternalStorageDirectory().toString()
+
+        var file = File(path, "temp1.txt")
+        //file.writeText("")
+        val text1 = file.readText()
+
+        file = File(path, "temp2.txt")
+        //file.writeText("")
+        val text2 = file.readText()
+
+        file = File(path, "temp3.txt")
+        //file.writeText("")
+        val text3 = file.readText()
+
+        if (text3 != ""){
+            intent.putExtra("Where", 3)
+        } else if (text2 != ""){
+            intent.putExtra("Where", 2)
+        } else if (text1 != "") {
+            intent.putExtra("Where", 1)
+        } else {
+            intent.putExtra("Where", 0)
+        }
 
         startActivity(intent)
 
@@ -132,6 +156,12 @@ class MainActivity : AppCompatActivity(){
         //val intent = Intent(Intent.ACTION_PICK)
         //intent.type = "image/*"
         //startActivityForResult(intent, 100)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+
     }
 
     val REQUEST_IMAGE_CAPTURE = 1
